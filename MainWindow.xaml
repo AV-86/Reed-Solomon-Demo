@@ -1,0 +1,136 @@
+﻿<Window x:Class="Reed_Solomon_Demo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Reed_Solomon_Demo" xmlns:System="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="597" Width="823">
+    <TabControl Margin="0,0,0,0" >
+        <TabItem Header="Арифметика">
+
+            <Canvas  Margin="10,10,10,10" >
+                <GroupBox BorderBrush="Black" BorderThickness="1" Height="205" Width="393" Header="Арифметика поля с основанием 2">
+                    <Canvas HorizontalAlignment="Left"  VerticalAlignment="Top" >
+
+                        <TextBlock TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center" Canvas.Left="10" Canvas.Top="9" Height="78"><Run Text="Проверка умножения в GF[8]"/><Run Text="."/><LineBreak/><Run Text="Для "/><Run Text="GF[8] "/><Run Text="Валидно лишь два"/><LineBreak/><Run Text="порождающий полинома"/><Run Text="."/><LineBreak/><Run Text="Это 11(1011)"/><LineBreak/><Run Text="и     13(1101)"/></TextBlock>
+                        <StackPanel Height="41" Orientation="Horizontal" Canvas.Left="10" Canvas.Top="92" >
+                            <TextBlock TextWrapping="Wrap" Text="Порождающий полином" VerticalAlignment="Center" Margin="0,13,0,12"/>
+                            <TextBox x:Name="TextBox_GF8_Poly" TextWrapping="Wrap" Text="11" Width="45" VerticalAlignment="Center" Margin="5,12,0,11" />
+                        </StackPanel>
+                        <Button x:Name="Button_MulTable" Content="Посчитать таблицу умножения"  Canvas.Left="10" Canvas.Top="153" Width="188" Click="Button_MulTable_Click"/>
+
+                        <Border BorderBrush="Black" BorderThickness="1" Height="164" Canvas.Left="215" Canvas.Top="9" Width="164">
+                            <Grid x:Name="Grid_nums" HorizontalAlignment="Left"  VerticalAlignment="Top"  Margin="1,1,1,1"/>
+                        </Border>
+                    </Canvas>
+                </GroupBox>
+
+                <GroupBox BorderBrush="Black" BorderThickness="1" Height="205" Canvas.Left="398" Width="391" Header="Инициализация GF[256]">
+                    <Canvas HorizontalAlignment="Left"  VerticalAlignment="Top" >
+                        <TextBox  x:Name="TextBox_GF256_Poly"  HorizontalAlignment="Left" Height="23"  TextWrapping="Wrap" Text="285" VerticalAlignment="Top" Width="46" Canvas.Left="193" Canvas.Top="118" TextAlignment="Center" />
+                        <TextBlock TextWrapping="Wrap" Canvas.Left="6" Canvas.Top="60" Height="53" Width="367"><Run Text="Для "/><Run Text="GF[256] "/><Run Text="валидны следующие порождающие полиномы:"/><LineBreak/><Run Text="285, 299, 301, 333, 351, 355, 357, 361, 369, 391, 397, 425, 251, 463, 487, 501."/></TextBlock>
+                        <TextBlock TextWrapping="Wrap" Text="Порождающий полином GF[256]" Grid.Row="1" Grid.Column="1" Canvas.Left="6" Canvas.Top="119"/>
+                        <Button x:Name="Button_test" Content="Построить таблицу" Grid.Column="1" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Width="120"  Canvas.Left="253" Canvas.Top="113" Height="53" Click="Button_test_Click"/>
+                        <TextBlock TextWrapping="Wrap" Canvas.Left="6" Canvas.Top="6" Height="54" Width="383"><Run Text="Создание таблицы степеней для"/><Run Text=" GF[256] "/><Run Text="с выбранным порождающим полиномом для умножения и с выбранным основанием (примитивным членом)"/></TextBlock>
+                        <TextBox  x:Name="TextBox_PowBase"  HorizontalAlignment="Left" Height="23"  TextWrapping="Wrap" Text="2" VerticalAlignment="Top" Width="46" Canvas.Left="193" Canvas.Top="143" TextAlignment="Center" />
+                        <TextBlock TextWrapping="Wrap" Text="Примитивный член (часто обозначают как &quot;a&quot;)" Canvas.Left="6" Canvas.Top="141" Height="32" Width="182"/>
+                    </Canvas>
+                </GroupBox>
+
+                <GroupBox BorderBrush="Black" BorderThickness="1" Height="133" Canvas.Top="210" Width="789" Header="Арифметика GF[256]">
+                    <Canvas HorizontalAlignment="Left"  VerticalAlignment="Top" >
+                        <TextBlock TextWrapping="Wrap" Height="67" Canvas.Left="9" Canvas.Top="2" Width="766" Text="Проверка операций в GF[256] с заданным порождающим полиномом для поля и с выбранным примитивным членом для таблицы степеней и логарифмов. Для умножения используется алгоритм с представлением чисел в виде полиномов, для деления – таблица степеней и логарифмов. Числа - обычные, десятичные, не могут быть меньше -255, или больше 255. Отрицательные значения всегда берутся по модулю, кроме случая возведения в степень"/>
+                        <TextBox x:Name="TextBox_Op1" HorizontalAlignment="Left" Height="22" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" TextChanged="TextBox_Decimal_TextChanged" Canvas.Left="107" Canvas.Top="74"/>
+                        <TextBox x:Name="TextBox_Op2" HorizontalAlignment="Left" Height="22" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" TextChanged="TextBox_Decimal_TextChanged" Canvas.Left="313" Canvas.Top="74"/>
+                        <Button HorizontalAlignment="Left" Content="=" VerticalAlignment="Top" Height="22" Canvas.Left="438" Canvas.Top="74" Click="Button_CheckOp_Click" Width="30"/>                        
+                        <TextBox x:Name="TextBox_Rez" HorizontalAlignment="Left" Height="22" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Canvas.Left="473" Canvas.Top="74" IsReadOnly="True"/>
+                        <ComboBox x:Name="ComboBox_Op" Text = "/"  HorizontalAlignment="Left" Height="22" Grid.Row="1" VerticalAlignment="Top" Width="76" Canvas.Left="232" Canvas.Top="74">
+                            <System:String>+</System:String>
+                            <System:String>-</System:String>
+                            <System:String>*</System:String>
+                            <System:String>/</System:String>
+                            <System:String>Pow</System:String>
+                            <System:String>Inv</System:String>
+                            <System:String>Log_a</System:String>
+                        </ComboBox>
+                    </Canvas>
+                </GroupBox>
+
+                <GroupBox BorderBrush="Black" BorderThickness="1" Height="151" Canvas.Top="357" Width="789" Header="Арифметика с полиномами GF[256]">
+                    <Canvas HorizontalAlignment="Left"   VerticalAlignment="Top" >
+                        <TextBlock TextWrapping="Wrap" Canvas.Left="9" Canvas.Top="4" Height="38" Width="730" Text="Проверка операций с полиномами. Представление полиномов от младшей к старшей. т. е. строка 1A 2B 3C 4D означает полином: 1A + 2B*x + 3C*x^2 + 4D*x^3&#x9;При умножении к результату прибавляется поле &quot;остаток&quot;"/>
+                        <TextBox x:Name="TextBox_Poly1" HorizontalAlignment="Left" Height="23" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="255"  Canvas.Left="72" Canvas.Top="61" TextChanged="TextBox_Hex_TextChanged"/>
+                        <TextBox x:Name="TextBox_Poly2" HorizontalAlignment="Left" Height="22" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="254"  Canvas.Left="422" Canvas.Top="60" TextChanged="TextBox_Hex_TextChanged"/>
+                        <TextBlock TextWrapping="Wrap" Text="Полином 1" Grid.Row="1" Height="23" Canvas.Left="6" Canvas.Top="61"/>
+                        <TextBlock TextWrapping="Wrap" Text="Полином 2" Grid.Row="1" Height="23" Canvas.Left="356" Canvas.Top="60"/>
+                        <TextBox x:Name="TextBox_Rezult" HorizontalAlignment="Left" Height="23" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="255" Canvas.Left="72" Canvas.Top="100" IsReadOnly="True" />
+                        <TextBlock TextWrapping="Wrap" Text="Результат" Grid.Row="1" Height="23" Canvas.Left="15" Canvas.Top="100"/>
+                        <Button x:Name="Button_Add" Content="Add" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Width="69"  Canvas.Left="704" Canvas.Top="47" Click="Button_Add_Click"/>
+                        <Button x:Name="Button_Mult" Content="Mult" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Width="69"  Canvas.Left="704" Canvas.Top="72" Click="Button_Mult_Click"/>
+                        <Button x:Name="Button_Div" Content="Div" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Width="69"  Canvas.Left="704" Canvas.Top="97" Click="Button_Div_Click" />
+                        <TextBox x:Name="TextBox_Remndr" HorizontalAlignment="Left" Height="23" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="254" Canvas.Left="422" Canvas.Top="100" TextChanged="TextBox_Hex_TextChanged" />
+                        <TextBlock TextWrapping="Wrap" Text="Остаток" Grid.Row="1" Height="23" Canvas.Left="373" Canvas.Top="100"/>
+
+                    </Canvas>
+                </GroupBox>
+            </Canvas>
+        </TabItem>
+        <TabItem Header="Кодирование">
+            <Canvas  Margin="10,10,10,10" >
+                <GroupBox BorderBrush="Black" BorderThickness="1" Height="155" Width="789" Header="Задание количества избыточных символов">
+                    <Canvas x:Name="Canvas_TestPrint" HorizontalAlignment="Left"   VerticalAlignment="Top" >
+                        <TextBlock TextWrapping="Wrap" Canvas.Left="11" Canvas.Top="4" Height="70" Width="756"><Run Text="Получение полинома-генератора вида"/><LineBreak/><Run Text="(x-a^0)(x-a^1)(x-a^2)...(x-a^(N-1))"/><LineBreak/><Run Text="Где "/><Run Text="a "/><Run Text="это примитивный член (как правило выбирают "/><Run Text="a=2"/><Run Text=", но не всегда. Здесь "/><Run Text="a "/><Run Text="выбирается при построении таблицы степеней "/><Run Text="на вкладке &quot;арифметика&quot;"/><Run Text="), а "/><Run Text="N – "/><Run Text="это количество избыточных символов для кодирования"/></TextBlock>
+                        <TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="1" Canvas.Left="46" Canvas.Top="79" Width="249"><Run Text="Количество сиволов коррекции ошибок"/><Run Text=" (N)"/></TextBlock>
+                        <TextBox  x:Name="TextBox_NumEcSym" Grid.Column="1" HorizontalAlignment="Left" Height="19" Grid.Row="1" TextWrapping="Wrap" Text="4" VerticalAlignment="Top" Width="33" Canvas.Left="300" Canvas.Top="79" />
+                        <TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="1" Canvas.Left="397" Canvas.Top="76" Width="262"><Run Text="Получившийся генератор-полином"/><Run Text=":"/></TextBlock>
+                        <TextBox  x:Name="TextBox_GeneratorPoly" Grid.Column="1" HorizontalAlignment="Left" Height="23" Grid.Row="1" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="370" Canvas.Left="397" Canvas.Top="103" TextChanged="TextBox_Hex_TextChanged"/>
+                        <Button x:Name="Button_Generate" Content="Генерировать генератор" Grid.Column="1" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Width="370" Height="23"  Canvas.Left="11" Canvas.Top="103" Click="Button_Generate_Click"/>
+                    </Canvas>
+                </GroupBox>
+
+                <GroupBox BorderBrush="Black" BorderThickness="1" Height="346" Width="789" Canvas.Top="170" Header="Получение кода Рида-Соломона">
+                    <Canvas HorizontalAlignment="Left"   VerticalAlignment="Top" >
+                        <TextBlock TextWrapping="Wrap" Canvas.Left="9" Canvas.Top="4" Height="39" Width="747" Text="Кодирование сообщения. Сообщение дополняется количеством нулей в начале, равным количеству символов коррекции, полученное делится на генератор-полином, остаток от деления записывается вместо нулей в начале."/>
+                        <TextBox x:Name="TextBox_Str" HorizontalAlignment="Left" Height="23" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="747"  Canvas.Left="9" Canvas.Top="74"/>
+                        <Button  x:Name="Button_GetBytes" Height="23" Width="213" Canvas.Left="543" Canvas.Top="102" Content="Перевести строку в hex" Click="Button_GetBytes_Click"/>
+                        <TextBlock TextWrapping="Wrap" Text="Сообщение в виде hex" Grid.Row="1" Height="23" Canvas.Left="9" Canvas.Top="102" Width="473"/>
+                        <TextBox x:Name="TextBox_Msg" HorizontalAlignment="Left" Height="54" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="747"  Canvas.Left="9" Canvas.Top="130" TextChanged="TextBox_Hex_TextChanged" />
+                        <TextBox x:Name="TextBox_Encoded" HorizontalAlignment="Left" Height="53" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="747"  Canvas.Left="9" Canvas.Top="263" IsReadOnly="True" TextChanged="TextBox_Encoded_TextChanged"/>
+                        <TextBlock TextWrapping="Wrap" Grid.Row="1" Height="21" Canvas.Left="9" Canvas.Top="48" Width="747"><Run Text="Сообщение в виде строки"/><Run Text=". (Кодировка "/><Run Text="UTF8"/><Run Text=")"/></TextBlock>
+                        <TextBlock TextWrapping="Wrap" Grid.Row="1" Height="18" Canvas.Left="9" Canvas.Top="240" Width="410" RenderTransformOrigin="1.319,1.13"><Run Text="Код Рида-Соломона для сообщения"/><Run Text=". (Избыточные символы в начале)"/></TextBlock>
+                        <Button x:Name="Button_encode" Content="Кодировать" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Width="747" Canvas.Left="9" Canvas.Top="189"  Height="46" Click="Button_encode_Click"/>
+                    </Canvas>
+                </GroupBox>
+            </Canvas>
+        </TabItem>
+        <TabItem Header="Декодирование">
+            <Canvas  Margin="10,10,10,10" >
+                <TextBox x:Name="TextBox_Magnitudes" HorizontalAlignment="Left" Height="22" TextWrapping="Wrap" VerticalAlignment="Top" Width="394" Canvas.Left="144" Canvas.Top="210"/>
+                <TextBox x:Name="TextBox_Locator_BM" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="394" Canvas.Left="144" Canvas.Top="154"/>
+                <Button x:Name="Button_GetLocator" Content="Посчитать локатор" HorizontalAlignment="Left" VerticalAlignment="Top" Width="236" Canvas.Left="543" Canvas.Top="154"  Height="23" Click="Button_GetLocator_Click"/>
+                <TextBlock TextWrapping="Wrap" Height="22" Canvas.Left="17" Canvas.Top="210" Width="122" Text="Амплитуды ошибок" TextAlignment="Right"/>
+                <Button x:Name="Button_CalcMagnitudes" Content="Посчитать амплитуды ошибок" HorizontalAlignment="Left" VerticalAlignment="Top" Width="236" Canvas.Left="543" Canvas.Top="210"  Height="22" Click="Button_CalcMagnitudes_Click"/>
+                <TextBox x:Name="TextBox_ErrPosCalculated" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" VerticalAlignment="Top" Width="394" Canvas.Left="144" Canvas.Top="182"  TextChanged="TextBox_Hex_TextChanged"/>
+                <TextBlock TextWrapping="Wrap" Text="посчитанные позиции ошибок 0x" Height="28" Canvas.Left="25" Canvas.Top="181" Width="114" RenderTransformOrigin="0.366,0.448" FontSize="10" TextAlignment="Right"/>
+
+
+
+                <TextBlock TextWrapping="Wrap" Height="23" Canvas.Left="17" Canvas.Top="10" Width="762"><Run Text="Закодированное сообщение с предыдущей вкладки. "/><Run Text="Можно портить, но не удалять символы. "/><Run Text="Иначе алгоритм не сработает. "/></TextBlock>
+                <TextBox x:Name="TextBox_Encoded_2" TextWrapping="Wrap" Text="" Height="54" Canvas.Left="10" Canvas.Top="38" Width="769" TextChanged="TextBox_Hex_TextChanged"/>
+                <TextBox x:Name="TextBox_Decoded_hex" HorizontalAlignment="Left" Height="61" TextWrapping="Wrap" VerticalAlignment="Top" Width="769" Canvas.Left="10" Canvas.Top="322" />
+                <TextBox x:Name="TextBox_Decoded_str" HorizontalAlignment="Left" Height="64" TextWrapping="Wrap" VerticalAlignment="Top" Width="769" Canvas.Left="10" Canvas.Top="409"/>
+                <Button x:Name="Button_Decode" Content="Раскодировать-исправить сообщение" HorizontalAlignment="Left" VerticalAlignment="Top" Width="769" Canvas.Left="10" Canvas.Top="250"  Height="38" Click="Button_TmpTest_Click"/>
+                <TextBlock TextWrapping="Wrap" Height="27" Canvas.Left="6" Canvas.Top="152" Width="133" TextAlignment="Right" Text="Локатор из синдромов и заданных позиций" FontSize="10"/>
+                <TextBox x:Name="TextBox_Syndromes" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="394" Canvas.Left="144" Canvas.Top="97"/>
+                <TextBlock TextWrapping="Wrap" Text="Синдром" Height="23" Canvas.Left="85" Canvas.Top="97" Width="54" RenderTransformOrigin="0.139,-5.652" TextAlignment="Right"/>
+                <Button x:Name="Button_CalcSyndrome" Content="Посчитать синдром" HorizontalAlignment="Left" VerticalAlignment="Top" Width="236" Canvas.Left="543" Canvas.Top="97"  Height="23" Click="Button_CalcSyndrome_Click"/>
+                <TextBlock Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="304" Width="769"><Run Text="Исправленное сообщение в виде "/><Run Text="Hex, "/><Run Text="с избыточными символами"/></TextBlock>
+                <TextBlock Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="388" Width="769"><Run Text="Исправленное сообщение в виде "/><Run Text="строки "/><Run Text="UTF8, "/><Run Text="избыточные символы"/><Run Text=" (они в начале)"/><Run Text=" убраны."/></TextBlock>
+                <TextBox x:Name="TextBox_ErrPos_Defined" HorizontalAlignment="Left" Height="24" TextWrapping="Wrap" VerticalAlignment="Top" Width="394" Canvas.Left="144" Canvas.Top="126" TextChanged="TextBox_Hex_TextChanged"/>
+                <TextBlock TextWrapping="Wrap" Text="Заданные позиции ошибок 0x" Height="24" Canvas.Left="39" Canvas.Top="125" Width="100" FontSize="10" TextAlignment="Right"/>
+                <Button x:Name="Button_CalcErrPos_Copy" Content="Посчитать из вычисленного локатора" HorizontalAlignment="Left" VerticalAlignment="Top" Width="236" Canvas.Left="543" Canvas.Top="181"  Height="24" Click="Button_CalcErrPos_Click"/>
+            </Canvas>
+        </TabItem>
+    </TabControl>
+</Window>
