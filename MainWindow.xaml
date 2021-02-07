@@ -87,6 +87,7 @@
                         <TextBlock TextWrapping="Wrap" Grid.Row="1" Grid.Column="1" Canvas.Left="397" Canvas.Top="76" Width="208"><Run Text="Получившийся генератор-полином"/><Run Text=":"/></TextBlock>
                         <TextBox  x:Name="TextBox_GeneratorPoly" Grid.Column="1" HorizontalAlignment="Left" Height="23" Grid.Row="1" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="370" Canvas.Left="397" Canvas.Top="103" TextChanged="TextBox_Hex_TextChanged"/>
                         <Button x:Name="Button_Generate" Content="Генерировать генератор" Grid.Column="1" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Width="370" Height="23"  Canvas.Left="11" Canvas.Top="103" Click="Button_Generate_Click"/>
+                        <Button x:Name="Button_TestGenerator" Content="Перемножить в файл" Height="22" Canvas.Left="642" Canvas.Top="74" Width="125" Click="Button_TestGenerator_Click"/>
                     </Canvas>
                 </GroupBox>
 
