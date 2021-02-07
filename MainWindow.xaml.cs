@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -35,20 +36,23 @@ namespace Reed_Solomon_Demo {
             }
             return Polynome_list.ToArray();
         }
-        private void OutByteArr(TextBox textBox, byte[] Arr) {
+        string GetStringFromByteArr(byte[] Arr) {
             string str = "";
 
             if (null == Arr) {
                 TextBox_Rezult.Text = "0";
-                return;
+                return "";
             }
             for (int i = 0; i < Arr.Length; i++) {
                 string btstr = Arr[i].ToString("X");
                 if (1 == btstr.Length) { btstr = "0" + btstr; }
                 str += btstr + " ";
             }
-            textBox.Text = str;
+            return str;
         }
+        private void OutByteArr(TextBox textBox, byte[] Arr) {            
+            textBox.Text = GetStringFromByteArr(Arr);
+        }        
         public MainWindow() {
             InitializeComponent();
         }
@@ -233,6 +237,9 @@ namespace Reed_Solomon_Demo {
             OutByteArr(TextBox_Rezult, GF_Poly.Div(new GF_Poly(GetByteArr(TextBox_Poly1)), new GF_Poly(GetByteArr(TextBox_Poly2))).GetByteArr());
             OutByteArr(TextBox_Remndr, GF_Poly.Div_Remainder(new GF_Poly(GetByteArr(TextBox_Poly1)), new GF_Poly(GetByteArr(TextBox_Poly2))).GetByteArr());
         }
+        private void Button_Der_Click(object sender, RoutedEventArgs e) {
+            OutByteArr(TextBox_Rezult, (new GF_Poly(GetByteArr(TextBox_Poly1))).FormalDerivative().GetByteArr());
+        }
         private void Button_Generate_Click(object sender, RoutedEventArgs e) {
             if (!uint.TryParse(TextBox_NumEcSym.Text, out uint NumOfECC)) { MessageBox.Show("Некорректный ввод количества символов коррекции ошибок"); return; }
             OutByteArr(TextBox_GeneratorPoly, ReedSolomonOps.GenerateGenerator(NumOfECC).GetByteArr());
@@ -310,7 +317,21 @@ namespace Reed_Solomon_Demo {
                 ).GetByteArr()
             );
         }
-        private void Button_TmpTest_Click(object sender, RoutedEventArgs e) {
+        private void Button_CalcMagnitudes2_Click(object sender, RoutedEventArgs e) {
+            if (!uint.TryParse(TextBox_NumEcSym.Text, out uint NumOfECC)) { MessageBox.Show("Некорректный ввод количества символов коррекции ошибок"); return; }
+
+            byte[] ErrPos = GetByteArr(TextBox_ErrPos_Defined);                        
+            GF_Poly ErrPosPoly = new GF_Poly(ErrPos);
+            OutByteArr(
+                TextBox_Magnitudes,
+                ReedSolomonOps.FindMagnitudesFromErrPos(
+                    new GF_Poly(GetByteArr(TextBox_Syndromes)),
+                    ErrPosPoly,
+                    NumOfECC
+                ).GetByteArr()
+            );
+        }
+        private void Button_Decode_Click(object sender, RoutedEventArgs e) {
             if (!uint.TryParse(TextBox_NumEcSym.Text, out uint NumOfECC)) { MessageBox.Show("Некорректный ввод количества символов коррекции ошибок"); return; }
             
             GF_Poly CorruptedMsg = new GF_Poly(GetByteArr(TextBox_Encoded_2));
@@ -319,6 +340,31 @@ namespace Reed_Solomon_Demo {
             OutByteArr(TextBox_Decoded_hex, DecodedArr);
             TextBox_Decoded_str.Text = Encoding.UTF8.GetString(DecodedArr, (int)NumOfECC, DecodedArr.Length - (int)NumOfECC);
 
+        }
+        private void Button_TestGenerator_Click(object sender, RoutedEventArgs e) {
+            if (0 == GetByteArr(TextBox_GeneratorPoly).Length) { MessageBox.Show("Некорректный ввод генератора"); return; }
+
+            GF_Poly Gen = new GF_Poly(GetByteArr(TextBox_GeneratorPoly));
+            GF_Poly Multiplied;
+
+            using (FileStream FS = File.Open(Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\" + "TestFile.txt", FileMode.OpenOrCreate)) {
+                for (int k = 1; k < 256; k++) {
+                    for (int j = 1; j < 256; j++) {
+                        for (int i = 1; i < 256; i++) {
+                            Multiplied = GF_Poly.Mult(Gen, GF_Poly.Add(GF_Poly.Add(new GF_Poly(new GF_Byte((byte)i), 0), new GF_Poly(new GF_Byte((byte)j), 1)), new GF_Poly(new GF_Byte((byte)j), 2)));
+                            string str = GetStringFromByteArr(Multiplied.GetByteArr());
+                            FS.Write(Encoding.UTF8.GetBytes(str), 0, Encoding.UTF8.GetBytes(str).Length);
+                            FS.Write(new byte[] { 13, 10 }, 0, 2);
+                        }
+                    }
+                }
+            }
+
+            GF_Poly CorruptedMsg = new GF_Poly(GetByteArr(TextBox_Encoded_2));
+            GF_Poly ErrMagnitude = new GF_Poly(GetByteArr(TextBox_Magnitudes));
+            byte[] DecodedArr = (CorruptedMsg + ErrMagnitude).GetByteArr();
+            OutByteArr(TextBox_Decoded_hex, DecodedArr);
+          //  TextBox_Decoded_str.Text = Encoding.UTF8.GetString(DecodedArr, (int)NumOfECC, DecodedArr.Length - (int)NumOfECC);
         }
     }
     static class Glob {
@@ -584,14 +630,28 @@ namespace Reed_Solomon_Demo {
             if (0 == d1.val) { return new GF_Byte(0); }
             return new GF_Byte(GF_256_Aryth.Div(d1.val, d2.val));
         }
+        public static GF_Byte operator /(byte d1, GF_Byte d2) {
+            if (0 == d2.val) { throw new Exception("Division by zero"); }
+            if (0 == d1) { return new GF_Byte(0); }
+            return new GF_Byte(GF_256_Aryth.Div(d1, d2.val));
+        }
     }
     public class GF_Poly {
         //Класс для работы с полиномами в поле Галуа GF[256].
         //Объект этого класса представляет собой полином.         
         private GF_Byte[] CoefArr; //Массив, в котором хранятся коэффициенты многочлена в порядке возрастания степени.
-        //Многочлен вроде этого: 5*x^5 + 17*x^4 + 22*x^2 + 211*x + 7
-        //будет представлен массивом : {7, 211, 22, 0, 17, 5}. 
-        
+                                   //Многочлен вроде этого: 5*x^5 + 17*x^4 + 22*x^2 + 211*x + 7
+                                   //будет представлен массивом : {7, 211, 22, 0, 17, 5}. 
+
+        public GF_Byte this[uint MemberNum] {
+            get { return GetMemberCoef(MemberNum); }
+            set { SetMemberCoef(MemberNum, value); }
+        }
+        public GF_Byte this[GF_Byte MemberNum] {
+            get { return GetMemberCoef(MemberNum.val); }
+            set { SetMemberCoef(MemberNum, value); }
+        }
+
         private uint CoefArrLen;//Вообще, можно пользоваться саойством любого массива в C# .Lenght Это поле - для простоты портирования в низкие языки.
         private uint ArrLen {
             get { return CoefArrLen; }
@@ -699,6 +759,12 @@ namespace Reed_Solomon_Demo {
                 SetNewCoefArrLen(MemberNum + 1);
             }
             CoefArr[MemberNum] = Value;
+        }
+        public void SetMemberCoef(GF_Byte MemberNum, GF_Byte Value) {
+            if (MemberNum.val > ArrLen - 1) {
+                SetNewCoefArrLen((uint)MemberNum.val + 1);
+            }
+            CoefArr[MemberNum.val] = Value;
         }
         public GF_Byte GetMemberCoef(uint MemberNum) {
             if (MemberNum < Len) {
@@ -886,26 +952,30 @@ namespace Reed_Solomon_Demo {
             GF_Poly Locator;
             GF_Poly Locator_old;
             
+            //Присваиваем локатору инициализирующее значение (1*X^0)
             Locator = new GF_Poly(new byte[] { 1 });
-            Locator_old = new GF_Poly(new byte[] { 1 });
+            Locator_old = new GF_Poly(Locator);
 
-            int Synd_Shift = (int)(Syndromes.Len - NumOfErCorrSymbs);
+            uint Synd_Shift = 0;
 
-            for (int i = 0; i < NumOfErCorrSymbs; i++) {
-                int K = i + Synd_Shift;
-                int Delta = Syndromes.GetMemberCoef((uint)K).val;
+            for (uint i = 0; i < NumOfErCorrSymbs; i++) {
+                uint K = i + Synd_Shift;
+                GF_Byte Delta = Syndromes[K];
 
-                for (int j = 1; j < Locator.Len; j++) {
-                    Delta ^= (Locator.GetMemberCoef((uint)j) * Syndromes.GetMemberCoef((uint)(K - j))).val;
+                for (uint j = 1; j < Locator.Len; j++) {
+                    Delta += Locator[j] * Syndromes[K - j];
                 }
-                Locator_old = Locator_old.MultiplyByXPower(1);//Умножение полинома на икс.
-                if (Delta != 0) {
+                Locator_old = Locator_old.MultiplyByXPower(1);//Умножение полинома на икс (эквивалентно сдвигу вправо на 1 байт)
+                if (Delta.val != 0) {
                     if (Locator_old.Len > Locator.Len) {
-                        GF_Poly Locator_new = Locator_old.Scale(new GF_Byte((byte)Delta));
-                        Locator_old = Locator.Scale((new GF_Byte((byte)Delta)).Inverse());
+                        GF_Poly Locator_new = Locator_old.Scale(Delta);
+                        Locator_old = Locator.Scale(Delta.Inverse());
                         Locator = Locator_new;
                     }
-                    Locator += Locator_old.Scale(new GF_Byte((byte)Delta));
+                    //Scale – умножение на константу. Можно было бы
+                    //вместо использования Scale 
+                    //умножить на полином нулевой степени. Разницы нет, но так короче:
+                    Locator += Locator_old.Scale(Delta);
                 }
             }
             return Locator;
@@ -917,29 +987,29 @@ namespace Reed_Solomon_Demo {
 
             if (0 == Erasures.Length) {
                 Locator = new GF_Poly(new byte[] { 1 });
-                Locator_old = new GF_Poly(new byte[] { 1 });
+                Locator_old = new GF_Poly(Locator);
             } else {
                 Locator = CalcLocatorPoly(Erasures);
                 Locator_old = new GF_Poly(Locator);
             }
 
-            int Synd_Shift = (int)(Syndromes.Len - NumOfErCorrSymbs);
+            uint Synd_Shift = 0;
 
-            for (int i = 0; i < NumOfErCorrSymbs-Erasures.Length; i++) {
-                int K = i + Synd_Shift + Erasures.Length;
-                int Delta = Syndromes.GetMemberCoef((uint)K).val;
+            for (uint i = 0; i < NumOfErCorrSymbs-Erasures.Length; i++) {
+                uint K = i + Synd_Shift + (uint)Erasures.Length;
+                GF_Byte Delta = Syndromes[K];
 
-                for (int j = 1; j < Locator.Len; j++) {
-                    Delta ^= (Locator.GetMemberCoef((uint)j) * Syndromes.GetMemberCoef((uint)(K - j))).val;
+                for (uint j = 1; j < Locator.Len; j++) {
+                    Delta += Locator[j] * Syndromes[K - j];
                 }
                 Locator_old = Locator_old.MultiplyByXPower(1);//Умножение полинома на икс.
-                if (Delta != 0) {
+                if (Delta.val != 0) {
                     if (Locator_old.Len > Locator.Len) {
-                        GF_Poly Locator_new = Locator_old.Scale(new GF_Byte((byte)Delta));
-                        Locator_old = Locator.Scale((new GF_Byte((byte)Delta)).Inverse());
+                        GF_Poly Locator_new = Locator_old.Scale(Delta);
+                        Locator_old = Locator.Scale(Delta.Inverse());
                         Locator = Locator_new;
                     }
-                    Locator += Locator_old.Scale(new GF_Byte((byte)Delta));
+                    Locator += Locator_old.Scale(Delta);
                 }
             }
             return Locator;
@@ -948,6 +1018,13 @@ namespace Reed_Solomon_Demo {
             GF_Poly ret = new GF_Poly(new byte[] { 1 });
             for (uint i = 0; i < Erasures.Length; i++) {
                 ret *= new GF_Poly(new byte[] { 1, GF_256_Aryth.Pow_a(Erasures[i])});
+            }
+            return ret;
+        }
+        public static GF_Poly CalcLocatorPoly(GF_Poly Erasures) {
+            GF_Poly ret = new GF_Poly(new byte[] { 1 });
+            for (uint i = 0; i < Erasures.Len; i++) {
+                ret *= new GF_Poly(new byte[] { 1, GF_256_Aryth.Pow_a(Erasures.GetMemberCoef(i).val) });
             }
             return ret;
         }
@@ -963,7 +1040,7 @@ namespace Reed_Solomon_Demo {
         public static GF_Poly FindMagnitudes(GF_Poly Syndromes, GF_Poly Locator, uint NumOfErCorrSymbs) {
 
             GF_Poly ErrPoly = new GF_Poly(Syndromes * Locator).DiscardHiDeg(NumOfErCorrSymbs); //Полином ошибок
-            GF_Poly ErrPos = FindErrPos(Locator);//Позиции ошибок
+            GF_Poly ErrPos = FindErrPos(Locator);//Полином позиций ошибок. Может быть вычислен из локатора
             GF_Poly LocatorDer = Locator.FormalDerivative();//Производная локатора
 
             GF_Poly Magnitudes = new GF_Poly(ErrPos.GetMaxCoef());
@@ -975,6 +1052,34 @@ namespace Reed_Solomon_Demo {
                 GF_Byte Magnitude = W / L;
                 Magnitudes.SetMemberCoef(ErrPos.GetMemberCoef(i).val, Magnitude);                
             }
+            return Magnitudes;
+        }
+        public static GF_Poly FindMagnitudesFromErrPos(GF_Poly Syndromes, GF_Poly ErrPos, uint NumOfErCorrSymbs) {
+            //Вычисление локатора из позиций ошибок
+            GF_Poly Locator = CalcLocatorPoly(ErrPos);
+            //Произведение для вычисления полинома ошибок
+            GF_Poly Product = Syndromes * Locator;
+            //Полином ошибок. DiscardHiDeg оставляет указаное количество младших степеней
+            GF_Poly ErrPoly = Product.DiscardHiDeg(NumOfErCorrSymbs);
+            //Производная локатора
+            GF_Poly LocatorDer = Locator.FormalDerivative();
+            //Здесь будут амплитуды ошибок. Количество членов - это самая большая позиция ошибки
+            GF_Poly Magnitudes = new GF_Poly(ErrPos.GetMaxCoef());
+
+            //Перебор каждой заданной позиции ошибки
+            for (uint i = 0; i < ErrPos.Len; i++) {
+                //число обратное примитивному члену в степени позиции ошибки
+                GF_Byte Xi = 1 / GF_Byte.Pow_a(ErrPos[i]);
+                //значение полинома ошибок при x = Xi
+                GF_Byte W = ErrPoly.Eval(Xi);
+                //значение производной локатора при x = Xi
+                GF_Byte L = LocatorDer.Eval(Xi);
+                //Это как раз и будет найденное значение ошибки,
+                //которое надо вычесть из ошибочного символа, чтобы он стал не ошибочным
+                GF_Byte Magnitude = W / L;
+                //запоминаем найденную амплитуду в текущей позиции ошибки
+                Magnitudes[ErrPos[i]] = Magnitude;
+            }            
             return Magnitudes;
         }
     }
